@@ -52,7 +52,13 @@ export default function BoardCanvas() {
       }
       setHint(`Adding ${files.length} files…`)
       void ingestFiles(editor, files, origin).then((n) =>
-        setHint(n > 0 ? `${n} items added` : 'Nothing readable dropped'),
+        setHint(
+          n === files.length
+            ? `${n} items added`
+            : n > 0
+              ? `${n} added, ${files.length - n} skipped (unsupported type)`
+              : 'Nothing readable dropped',
+        ),
       )
     }
 

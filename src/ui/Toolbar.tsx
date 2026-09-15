@@ -3,6 +3,7 @@ import { getEditor } from '../canvas/editorRef'
 import { useBoardUi } from '../core/store'
 import { SNAPSHOT_KEY } from '../core/types'
 import { ingestFiles, ingestText } from '../features/dump/ingest'
+import { exportBoardAs } from '../features/export/exportBoard'
 import { kvSet } from '../storage/db'
 
 function download(name: string, text: string) {
@@ -48,8 +49,13 @@ export default function Toolbar() {
       const snap = editor.getSnapshot()
       void kvSet(SNAPSHOT_KEY, snap).finally(() => {
         download(`me-canvas-${Date.now()}.mcanvas.json`, JSON.stringify(snap))
-        setHint('Board exported')
+        setHint('Board backup downloaded')
       })
+    })
+
+  const exportImage = (format: 'png' | 'svg') =>
+    withEditor((editor) => {
+      void exportBoardAs(editor, format).then(setHint).catch(() => setHint('Image export failed'))
     })
 
   return (
@@ -80,9 +86,24 @@ export default function Toolbar() {
       </button>
       <button
         className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        title="Export selection (or whole board) as PNG"
+        onClick={() => exportImage('png')}
+      >
+        PNG
+      </button>
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        title="Export selection (or whole board) as SVG"
+        onClick={() => exportImage('svg')}
+      >
+        SVG
+      </button>
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        title="Download full board backup (.mcanvas.json)"
         onClick={exportBoard}
       >
-        Export
+        Backup
       </button>
       <button
         className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
@@ -108,7 +129,13 @@ export default function Toolbar() {
           if (files.length === 0) return
           withEditor((editor) => {
             setHint(`Adding ${files.length} file${files.length > 1 ? 's' : ''}…`)
-            void ingestFiles(editor, files).then((n) => setHint(`${n} items added`))
+            void ingestFiles(editor, files).then((n) =>
+              setHint(
+                n === files.length
+                  ? `${n} item${n === 1 ? '' : 's'} added`
+                  : `${n} added, ${files.length - n} skipped (unsupported type)`,
+              ),
+            )
           })
         }}
       />

@@ -28,10 +28,17 @@ npm run build  # typecheck + production bundle
 - **⌘K / Ctrl+K quick search**: fuzzy-find across text content, image filenames, shape types, and #tags. Enter jumps (selects + zooms) to the match.
 - **Tags**: select anything → tag panel bottom-right → add/remove tags. Tags persist in snapshots and are searchable. Hover a tag chip to see remove; click removes from the whole selection.
 
+## What works (Phase 4 — Polish)
+- **First-run onboarding**: empty boards show a 3-step overlay (dismisses forever).
+- **PNG / SVG export**: toolbar buttons export the selection, or the whole board when nothing is selected (2x scale, with background).
+- **Backup / Import**: full-fidelity `.mcanvas.json` snapshot round-trip.
+- **⤢ Fit**: zoom-to-fit for the whole board in the organize bar.
+- **Honest skip messages**: unsupported file types report "N added, M skipped" instead of failing silently.
+
 ## Known limits
 - Single board, single device. No sync yet.
 - Snapshots hold full images — very large boards will grow IndexedDB usage (OPFS tier planned).
-- No tags, search, frames UI, or minimap beyond tldraw defaults yet — that's Phase 2/3.
+- Image search covers filenames/tags, not OCR of pixels yet.
 
 ## Reviewing the code
 Start at `src/App.tsx` → `src/canvas/BoardCanvas.tsx` → `src/features/dump/ingest.ts`.

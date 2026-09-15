@@ -21,11 +21,13 @@ src/
     organize/  organize.ts (frames, align/distribute/stack, z-order — thin editor wrappers)
     find/      search.ts (pure searchable index + filter, no editor imports)
                tags.ts (tags in shape.meta.mcTags — no custom shapes needed)
+    export/    exportBoard.ts (selection-or-page PNG/SVG via tldraw exportAs)
   storage/     db.ts (tiny idb key-value wrapper)
-  ui/          Toolbar.tsx (note/upload/export/import/clear/search)
-               OrganizeBar.tsx (frame/align/distribute/stack/z-order row)
+  ui/          Toolbar.tsx (note/upload/png/svg/backup/import/clear/search)
+               OrganizeBar.tsx (fit/frame/align/distribute/stack/z-order row)
                CmdK.tsx (⌘K quick-search dialog)
                TagPanel.tsx (floating tag editor for selection)
+               Onboarding.tsx (first-run overlay, idb-dismissed)
                StatusBar.tsx (save state + hints)
 ```
 

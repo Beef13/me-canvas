@@ -56,6 +56,17 @@ export default function OrganizeBar() {
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b border-white/10 bg-[#20232a] px-3 py-1">
+      <Action
+        label="⤢ Fit"
+        title="Zoom to fit all content"
+        onClick={() =>
+          run((e) => {
+            e.zoomToFit()
+            return 'Zoomed to fit'
+          })
+        }
+      />
+      <span className="mx-1 h-4 w-px bg-white/10" />
       <Action label="▢ Frame" title="New section frame at view center" onClick={() => run(createFrameAtCenter)} />
       <span className="mx-1 h-4 w-px bg-white/10" />
       <Action label="⇤" title="Align left" disabled={n < 2} onClick={() => align('left')} />

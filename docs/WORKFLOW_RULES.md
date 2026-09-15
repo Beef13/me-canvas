@@ -28,4 +28,5 @@ How we build me-canvas. Updated whenever we learn something that should change o
 - 2026-09-16: `.mc-canvas` collapsed to 0px height because `flex:1` on a block child of a non-flex parent does nothing. Canvas wrapper must be `position:absolute; inset:0` inside the relative parent. Always give the Tldraw container explicit bounds.
 - 2026-09-16: Tags via `shape.meta.mcTags` + `editor.updateShapes` — no custom shape types needed. Search index (`features/find/search.ts`) takes plain data + an asset-name callback, keeping it pure and editor-free.
 - 2026-09-16: `useEditor` comes from `tldraw` main entry (re-exported). Components needing editor context (SelectionBridge) must render as `<Tldraw>` children; everything else uses the module-level `editorRef`.
+- 2026-09-16: Image export = `exportAs(editor, ids, {format:'png'|'svg', scale, background})` from `tldraw`. Selection-or-page fallback keeps one button correct in both cases.
 - (append new learnings here with date)

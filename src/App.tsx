@@ -1,5 +1,6 @@
 import BoardCanvas from './canvas/BoardCanvas'
 import CmdK from './ui/CmdK'
+import Onboarding from './ui/Onboarding'
 import OrganizeBar from './ui/OrganizeBar'
 import StatusBar from './ui/StatusBar'
 import TagPanel from './ui/TagPanel'
@@ -14,6 +15,7 @@ export default function App() {
         <BoardCanvas />
         <StatusBar />
         <TagPanel />
+        <Onboarding />
       </div>
       <CmdK />
     </div>
