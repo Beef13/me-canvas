@@ -1,0 +1,138 @@
+import { useRef } from 'react'
+import { getEditor } from '../canvas/editorRef'
+import { useBoardUi } from '../core/store'
+import { SNAPSHOT_KEY } from '../core/types'
+import { ingestFiles, ingestText } from '../features/dump/ingest'
+import { kvSet } from '../storage/db'
+
+function download(name: string, text: string) {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+  a.download = name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 5_000)
+}
+
+/** Top bar: board actions. Canvas state lives in tldraw; this is a thin shell. */
+export default function Toolbar() {
+  const fileRef = useRef<HTMLInputElement>(null)
+  const importRef = useRef<HTMLInputElement>(null)
+  const { shapeCount, setHint, setSearchOpen } = useBoardUi()
+
+  const withEditor = (fn: (e: NonNullable<ReturnType<typeof getEditor>>) => void) => {
+    const editor = getEditor()
+    if (!editor) {
+      setHint('Canvas still loading…')
+      return
+    }
+    fn(editor)
+  }
+
+  const addNote = () =>
+    withEditor((editor) => {
+      void ingestText(editor, 'Double-click to edit this note').then(() =>
+        setHint('Note added'),
+      )
+    })
+
+  const clearBoard = () =>
+    withEditor((editor) => {
+      if (!window.confirm('Delete everything on this board?')) return
+      editor.selectAll()
+      editor.deleteShapes(editor.getSelectedShapeIds())
+      setHint('Board cleared')
+    })
+
+  const exportBoard = () =>
+    withEditor((editor) => {
+      const snap = editor.getSnapshot()
+      void kvSet(SNAPSHOT_KEY, snap).finally(() => {
+        download(`me-canvas-${Date.now()}.mcanvas.json`, JSON.stringify(snap))
+        setHint('Board exported')
+      })
+    })
+
+  return (
+    <header className="flex items-center gap-2 border-b border-white/10 bg-[#23262c] px-3 py-2">
+      <span className="text-sm font-semibold tracking-wide">me-canvas</span>
+      <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">
+        {shapeCount} item{shapeCount === 1 ? '' : 's'}
+      </span>
+      <div className="flex-1" />
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        title="Search board (Ctrl/⌘+K)"
+        onClick={() => setSearchOpen(true)}
+      >
+        ⌘K Search
+      </button>
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        onClick={addNote}
+      >
+        + Note
+      </button>
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        onClick={() => fileRef.current?.click()}
+      >
+        Upload
+      </button>
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        onClick={exportBoard}
+      >
+        Export
+      </button>
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        onClick={() => importRef.current?.click()}
+      >
+        Import
+      </button>
+      <button
+        className="rounded-md bg-red-500/20 px-2.5 py-1.5 text-xs text-red-200 hover:bg-red-500/30"
+        onClick={clearBoard}
+      >
+        Clear
+      </button>
+      <input
+        ref={fileRef}
+        type="file"
+        multiple
+        accept="image/*,video/*,.pdf"
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files ? Array.from(e.target.files) : []
+          e.target.value = ''
+          if (files.length === 0) return
+          withEditor((editor) => {
+            setHint(`Adding ${files.length} file${files.length > 1 ? 's' : ''}…`)
+            void ingestFiles(editor, files).then((n) => setHint(`${n} items added`))
+          })
+        }}
+      />
+      <input
+        ref={importRef}
+        type="file"
+        accept="application/json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (!file) return
+          withEditor((editor) => {
+            void file.text().then((text) => {
+              try {
+                editor.loadSnapshot(JSON.parse(text))
+                setHint('Board imported')
+              } catch {
+                setHint('Import failed: not a board file')
+              }
+            })
+          })
+        }}
+      />
+    </header>
+  )
+}
