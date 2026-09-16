@@ -54,7 +54,7 @@ export default function TagPanel() {
   }
 
   return (
-    <div className="absolute bottom-3 right-3 w-56 rounded-xl border border-white/10 bg-[#23262c]/95 p-2.5 shadow-xl backdrop-blur">
+    <div className="absolute bottom-3 right-3 w-56 rounded-xl border border-white/10 bg-[#23262c] p-2.5 shadow-xl">
       <div className="mb-1.5 text-[11px] uppercase tracking-wide text-white/40">
         Tags · {selectedIds.length} selected
       </div>
