@@ -35,15 +35,17 @@ npm run build  # typecheck + production bundle
 - **⤢ Fit**: zoom-to-fit for the whole board in the organize bar.
 - **Honest skip messages**: unsupported file types report "N added, M skipped" instead of failing silently.
 
-## Desktop app (Tauri)
-```bash
-npm run desktop:dev    # native window (needs Rust toolchain)
-npm run desktop:build  # installer bundle
-```
-- Same board, native window (1440×900 default). Web build is untouched.
-- **📌 Pin** button (desktop only) toggles always-on-top for reference-over-work use.
-- **Finder drops work**: drag files from Finder straight onto the canvas (native path, auto-tiled). Drops land where you release them and never move the camera.
-- Data stays in the same local-first IndexedDB snapshot store.
+## What works (Collab — live duo boards)
+- **👥 Collaborate** (toolbar): Host a room → copy invite link → guest opens link → Join. No account, no server; connects peer-to-peer.
+- **Live shape sync**: creates, moves, edits, deletes replicate both ways within ~100ms.
+- **Live cursors**: see each other's named, color-coded pointers.
+- **Join flow**: guest pulls the host's full board (incl. image bytes) on join.
+- **Conflict policy**: last-writer-wins per shape; undo is local-only; image assets over 25MB are skipped with a hint.
+- **Test it**: open the app in two browser windows (or two machines), host in one, join in the other.
+
+## Desktop app (Tauri) — PARKED
+Desktop work is paused while web + collab are the focus (an unresolved webview
+blackout is open). The `src-tauri/` shell is kept but not under active test.
 
 ## Known limits
 - Single board, single device. No sync yet.

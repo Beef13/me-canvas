@@ -22,14 +22,17 @@ src/
     find/      search.ts (pure searchable index + filter, no editor imports)
                tags.ts (tags in shape.meta.mcTags — no custom shapes needed)
     export/    exportBoard.ts (selection-or-page PNG/SVG via tldraw exportAs)
+  collab/      protocol.ts (wire messages, peer colors, room-link helpers)
+               session.ts (PeerJS star-topology engine: host relays ops/cursors)
   storage/     db.ts (tiny idb key-value wrapper)
   desktop/     tauri.ts (isTauri detect, always-on-top — browser-safe no-ops)
-  ui/          Toolbar.tsx (note/upload/png/svg/backup/import/clear/search + 📌 pin on desktop)
+  ui/          Toolbar.tsx (note/upload/png/svg/backup/import/clear/search/collab)
                OrganizeBar.tsx (fit/frame/align/distribute/stack/z-order row)
                CmdK.tsx (⌘K quick-search dialog)
+               CollabPanel.tsx (host/join flow, roster) + RemoteCursors.tsx
                TagPanel.tsx (floating tag editor for selection)
                Onboarding.tsx (first-run overlay, idb-dismissed)
-               StatusBar.tsx (save state + hints)
+               StatusBar.tsx (save state + hints + camera readout)
 ```
 
 ## Data flow

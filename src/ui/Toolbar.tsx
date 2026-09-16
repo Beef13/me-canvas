@@ -19,7 +19,7 @@ function download(name: string, text: string) {
 export default function Toolbar() {
   const fileRef = useRef<HTMLInputElement>(null)
   const importRef = useRef<HTMLInputElement>(null)
-  const { shapeCount, setHint, setSearchOpen } = useBoardUi()
+  const { shapeCount, setHint, setSearchOpen, peers, setCollabOpen } = useBoardUi()
   const [isDesktop] = useState(isTauri)
   const [pinned, setPinnedState] = useState(false)
 
@@ -79,6 +79,13 @@ export default function Toolbar() {
         {shapeCount} item{shapeCount === 1 ? '' : 's'}
       </span>
       <div className="flex-1" />
+      <button
+        className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+        title="Collaborate live (no account needed)"
+        onClick={() => setCollabOpen(true)}
+      >
+        👥 Collaborate{peers.length > 1 ? ` (${peers.length})` : ''}
+      </button>
       <button
         className="rounded-md bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
         title="Search board (Ctrl/⌘+K)"
