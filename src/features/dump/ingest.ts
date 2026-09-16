@@ -24,19 +24,26 @@ function snapCamera(editor: Editor) {
 
 /**
  * tldraw auto-zooms to external content placed off-viewport
- * (`zoomToSelection` in its default handlers). Drops must never move the
- * camera, so we snapshot and restore it around every ingest.
+ * (`zoomToSelection` in its default handlers — animated, so it keeps flying
+ * after the ingest promise resolves). Drops must never move the camera:
+ * snapshot it, kill any animation, and restore — twice, since asset loads
+ * can kick the animation late.
  */
 function restoreCamera(editor: Editor, snap: { x: number; y: number; z: number } | null) {
   if (!snap) return
-  try {
-    const now = editor.getCamera()
-    if (now.x !== snap.x || now.y !== snap.y || now.z !== snap.z) {
-      editor.setCamera(snap)
+  const apply = () => {
+    try {
+      editor.stopCameraAnimation()
+      const now = editor.getCamera()
+      if (now.x !== snap.x || now.y !== snap.y || now.z !== snap.z) {
+        editor.setCamera(snap)
+      }
+    } catch {
+      // Camera already gone (board cleared mid-drop) — nothing to restore.
     }
-  } catch {
-    // Camera already gone (board cleared mid-drop) — nothing to restore.
   }
+  apply()
+  requestAnimationFrame(apply)
 }
 
 /**
