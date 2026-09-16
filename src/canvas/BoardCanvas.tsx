@@ -8,6 +8,7 @@ import {
 } from '../features/dump/ingest'
 import { setEditor } from './editorRef'
 import { attachPersistence, restoreSnapshot } from './persistence'
+import { recoverLostView, ensureContentVisible } from './recoverView'
 import SelectionBridge from './SelectionBridge'
 import { isTauri } from '../desktop/tauri'
 import { onNativeFileDrop } from '../desktop/nativeDrop'
@@ -66,6 +67,9 @@ export default function BoardCanvas() {
     editor.setColorMode('dark')
     void restoreSnapshot(editor).then(() => {
       detachRef.current = attachPersistence(editor)
+      if (recoverLostView(editor)) {
+        useBoardUi.getState().setHint('View recovered — camera was lost')
+      }
     })
   }, [])
 
@@ -88,15 +92,19 @@ export default function BoardCanvas() {
         origin = editor.screenToPage(editor.getViewportScreenCenter())
       }
       setHint(`Adding ${files.length} files…`)
-      void ingestFiles(editor, files, origin).then((n) =>
-        setHint(
-          n === files.length
-            ? `${n} items added`
-            : n > 0
-              ? `${n} added, ${files.length - n} skipped (unsupported type)`
-              : 'Nothing readable dropped',
-        ),
-      )
+      void ingestFiles(editor, files, origin).then((n) => {
+        if (ensureContentVisible(editor)) {
+          setHint('Centered dropped items')
+        } else {
+          setHint(
+            n === files.length
+              ? `${n} items added`
+              : n > 0
+                ? `${n} added, ${files.length - n} skipped (unsupported type)`
+                : 'Nothing readable dropped',
+          )
+        }
+      })
     }
 
     const onDragOver = (e: DragEvent) => {
@@ -123,15 +131,19 @@ export default function BoardCanvas() {
         void nativeDropPoint(editor, position).then((origin) => {
           if (!editorRef.current) return
           setHint(`Adding ${total} file${total === 1 ? '' : 's'}…`)
-          void ingestFiles(editor, files, origin).then((n) =>
-            setHint(
-              n === total
-                ? `${n} item${n === 1 ? '' : 's'} added`
-                : n > 0
-                  ? `${n} added, ${total - n} skipped`
-                  : 'Nothing readable dropped',
-            ),
-          )
+          void ingestFiles(editor, files, origin).then((n) => {
+            if (ensureContentVisible(editor)) {
+              setHint('Centered dropped items')
+            } else {
+              setHint(
+                n === total
+                  ? `${n} item${n === 1 ? '' : 's'} added`
+                  : n > 0
+                    ? `${n} added, ${total - n} skipped`
+                    : 'Nothing readable dropped',
+              )
+            }
+          })
         })
       }).then((unlisten) => {
         if (cancelled) unlisten()
