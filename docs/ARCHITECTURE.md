@@ -23,7 +23,8 @@ src/
                tags.ts (tags in shape.meta.mcTags — no custom shapes needed)
     export/    exportBoard.ts (selection-or-page PNG/SVG via tldraw exportAs)
   storage/     db.ts (tiny idb key-value wrapper)
-  ui/          Toolbar.tsx (note/upload/png/svg/backup/import/clear/search)
+  desktop/     tauri.ts (isTauri detect, always-on-top — browser-safe no-ops)
+  ui/          Toolbar.tsx (note/upload/png/svg/backup/import/clear/search + 📌 pin on desktop)
                OrganizeBar.tsx (fit/frame/align/distribute/stack/z-order row)
                CmdK.tsx (⌘K quick-search dialog)
                TagPanel.tsx (floating tag editor for selection)
@@ -43,3 +44,10 @@ src/
 
 ## Non-goals (V1)
 Realtime multiplayer, accounts/billing, AI search/layout, mobile app, connectors/pen tools.
+
+## Desktop (Tauri v2)
+`src-tauri/` wraps the same `dist/` bundle — one codebase, two shells.
+`tauri.conf.json` points `frontendDist` at `../dist` and `devUrl` at `localhost:1420`;
+vite uses a fixed `strictPort: 1420` so the dev window always finds it.
+`src/desktop/tauri.ts` is the only desktop-aware frontend code; everything else
+is shell-agnostic. Next desktop slices: global capture hotkey, file-system import.

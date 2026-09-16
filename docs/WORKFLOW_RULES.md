@@ -29,4 +29,5 @@ How we build me-canvas. Updated whenever we learn something that should change o
 - 2026-09-16: Tags via `shape.meta.mcTags` + `editor.updateShapes` — no custom shape types needed. Search index (`features/find/search.ts`) takes plain data + an asset-name callback, keeping it pure and editor-free.
 - 2026-09-16: `useEditor` comes from `tldraw` main entry (re-exported). Components needing editor context (SelectionBridge) must render as `<Tldraw>` children; everything else uses the module-level `editorRef`.
 - 2026-09-16: Image export = `exportAs(editor, ids, {format:'png'|'svg', scale, background})` from `tldraw`. Selection-or-page fallback keeps one button correct in both cases.
+- 2026-09-16: Tauri scaffold via `tauri init --ci`, then hand-fix: `frontendDist ../dist`, `devUrl localhost:1420`, fixed vite `strictPort`. Static `import` of `@tauri-apps/api` is browser-safe (no-ops until invoked). Always `cargo check` after touching `src-tauri/`.
 - (append new learnings here with date)

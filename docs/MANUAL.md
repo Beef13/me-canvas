@@ -35,6 +35,15 @@ npm run build  # typecheck + production bundle
 - **⤢ Fit**: zoom-to-fit for the whole board in the organize bar.
 - **Honest skip messages**: unsupported file types report "N added, M skipped" instead of failing silently.
 
+## Desktop app (Tauri)
+```bash
+npm run desktop:dev    # native window (needs Rust toolchain)
+npm run desktop:build  # installer bundle
+```
+- Same board, native window (1440×900 default). Web build is untouched.
+- **📌 Pin** button (desktop only) toggles always-on-top for reference-over-work use.
+- Data stays in the same local-first IndexedDB snapshot store.
+
 ## Known limits
 - Single board, single device. No sync yet.
 - Snapshots hold full images — very large boards will grow IndexedDB usage (OPFS tier planned).

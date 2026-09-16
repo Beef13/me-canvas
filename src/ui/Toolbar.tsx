@@ -1,7 +1,8 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getEditor } from '../canvas/editorRef'
 import { useBoardUi } from '../core/store'
 import { SNAPSHOT_KEY } from '../core/types'
+import { isPinned, isTauri, setPinned } from '../desktop/tauri'
 import { ingestFiles, ingestText } from '../features/dump/ingest'
 import { exportBoardAs } from '../features/export/exportBoard'
 import { kvSet } from '../storage/db'
@@ -19,6 +20,19 @@ export default function Toolbar() {
   const fileRef = useRef<HTMLInputElement>(null)
   const importRef = useRef<HTMLInputElement>(null)
   const { shapeCount, setHint, setSearchOpen } = useBoardUi()
+  const [isDesktop] = useState(isTauri)
+  const [pinned, setPinnedState] = useState(false)
+
+  useEffect(() => {
+    if (isDesktop) void isPinned().then(setPinnedState)
+  }, [isDesktop])
+
+  const togglePin = () => {
+    void setPinned(!pinned).then((next) => {
+      setPinnedState(next)
+      setHint(next ? 'Pinned on top' : 'Unpinned')
+    })
+  }
 
   const withEditor = (fn: (e: NonNullable<ReturnType<typeof getEditor>>) => void) => {
     const editor = getEditor()
@@ -117,6 +131,17 @@ export default function Toolbar() {
       >
         Clear
       </button>
+      {isDesktop && (
+        <button
+          className={`rounded-md px-2.5 py-1.5 text-xs ${
+            pinned ? 'bg-amber-400/30 text-amber-100' : 'bg-white/10 hover:bg-white/20'
+          }`}
+          title="Keep window always on top (desktop)"
+          onClick={togglePin}
+        >
+          📌 {pinned ? 'Pinned' : 'Pin'}
+        </button>
+      )}
       <input
         ref={fileRef}
         type="file"
