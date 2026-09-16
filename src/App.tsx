@@ -1,5 +1,6 @@
 import BoardCanvas from './canvas/BoardCanvas'
 import CmdK from './ui/CmdK'
+import ErrorOverlay from './ui/ErrorOverlay'
 import Onboarding from './ui/Onboarding'
 import OrganizeBar from './ui/OrganizeBar'
 import StatusBar from './ui/StatusBar'
@@ -16,6 +17,7 @@ export default function App() {
         <StatusBar />
         <TagPanel />
         <Onboarding />
+        <ErrorOverlay />
       </div>
       <CmdK />
     </div>

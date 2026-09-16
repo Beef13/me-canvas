@@ -9,6 +9,8 @@ import {
 import { setEditor } from './editorRef'
 import { attachPersistence, restoreSnapshot } from './persistence'
 import { recoverLostView, ensureContentVisible } from './recoverView'
+import { sanitizeShapes } from './sanitize'
+import CanvasErrorBoundary from '../ui/CanvasErrorBoundary'
 import SelectionBridge from './SelectionBridge'
 import { isTauri } from '../desktop/tauri'
 import { onNativeFileDrop } from '../desktop/nativeDrop'
@@ -66,9 +68,12 @@ export default function BoardCanvas() {
     setEditor(editor)
     editor.setColorMode('dark')
     void restoreSnapshot(editor).then(() => {
+      const ui = useBoardUi.getState()
+      const removed = sanitizeShapes(editor)
+      if (removed > 0) ui.setHint(`Removed ${removed} corrupted item${removed === 1 ? '' : 's'}`)
       detachRef.current = attachPersistence(editor)
       if (recoverLostView(editor)) {
-        useBoardUi.getState().setHint('View recovered — camera was lost')
+        ui.setHint('View recovered — camera was lost')
       }
     })
   }, [])
@@ -165,9 +170,11 @@ export default function BoardCanvas() {
 
   return (
     <div ref={wrapRef} className="mc-canvas">
-      <Tldraw onMount={onMount}>
-        <SelectionBridge />
-      </Tldraw>
+      <CanvasErrorBoundary>
+        <Tldraw onMount={onMount}>
+          <SelectionBridge />
+        </Tldraw>
+      </CanvasErrorBoundary>
     </div>
   )
 }
