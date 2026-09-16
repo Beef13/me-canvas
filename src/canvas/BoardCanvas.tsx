@@ -9,6 +9,8 @@ import {
 import { setEditor } from './editorRef'
 import { attachPersistence, restoreSnapshot } from './persistence'
 import SelectionBridge from './SelectionBridge'
+import { isTauri } from '../desktop/tauri'
+import { onNativeFileDrop } from '../desktop/nativeDrop'
 
 /**
  * Infinite canvas. tldraw owns rendering, camera, and all native
@@ -17,6 +19,8 @@ import SelectionBridge from './SelectionBridge'
  * - dark mode + local-first snapshot persistence (IndexedDB, debounced)
  * - multi-file drop interception: folder dumps auto-tile in a grid
  *   instead of stacking on one point. Single files pass through to tldraw.
+ * - desktop (Tauri): native Finder drops via file paths, since desktop
+ *   webviews hide OS drops from DataTransfer.
  */
 export default function BoardCanvas() {
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -74,7 +78,35 @@ export default function BoardCanvas() {
 
     el.addEventListener('drop', onDrop, true)
     el.addEventListener('dragover', onDragOver, true)
+
+    // Desktop webviews hide Finder drops from DataTransfer — use the
+    // native path (file paths + fs reads) when running under Tauri.
+    let nativeUnlisten: (() => void) | null = null
+    let cancelled = false
+    if (isTauri()) {
+      void onNativeFileDrop((files, total) => {
+        const editor = editorRef.current
+        if (!editor) return
+        const origin = editor.screenToPage(editor.getViewportScreenCenter())
+        setHint(`Adding ${total} file${total === 1 ? '' : 's'}…`)
+        void ingestFiles(editor, files, origin).then((n) =>
+          setHint(
+            n === total
+              ? `${n} item${n === 1 ? '' : 's'} added`
+              : n > 0
+                ? `${n} added, ${total - n} skipped`
+                : 'Nothing readable dropped',
+          ),
+        )
+      }).then((unlisten) => {
+        if (cancelled) unlisten()
+        else nativeUnlisten = unlisten
+      })
+    }
+
     return () => {
+      cancelled = true
+      nativeUnlisten?.()
       el.removeEventListener('drop', onDrop, true)
       el.removeEventListener('dragover', onDragOver, true)
       detachRef.current?.()

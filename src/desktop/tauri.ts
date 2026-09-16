@@ -22,7 +22,9 @@ export async function setPinned(pin: boolean): Promise<boolean> {
   try {
     await getCurrentWindow().setAlwaysOnTop(pin)
     return pin
-  } catch {
+  } catch (err) {
+    // Surfaced (not swallowed): permission denials show up in dev logs.
+    console.error('[me-canvas] setAlwaysOnTop failed:', err)
     return false
   }
 }

@@ -6,6 +6,11 @@
     "main"
   ],
   "permissions": [
-    "core:default"
+    "core:default",
+    "core:window:allow-set-always-on-top",
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [{ "path": "$HOME/**" }]
+    }
   ]
 }
