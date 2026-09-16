@@ -22,6 +22,9 @@ function snapCamera(editor: Editor) {
   }
 }
 
+// BISECT BUILD (temporary): camera guard disabled to isolate blackout cause.
+const CAMERA_GUARD_ENABLED = false
+
 /**
  * tldraw auto-zooms to external content placed off-viewport
  * (`zoomToSelection` in its default handlers — animated, so it keeps flying
@@ -30,6 +33,7 @@ function snapCamera(editor: Editor) {
  * can kick the animation late.
  */
 function restoreCamera(editor: Editor, snap: { x: number; y: number; z: number } | null) {
+  if (!CAMERA_GUARD_ENABLED) return // BISECT: guard stripped
   if (!snap) return
   const apply = () => {
     try {
