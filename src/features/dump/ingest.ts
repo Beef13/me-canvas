@@ -13,6 +13,32 @@ function viewportOrigin(editor: Editor): PagePoint {
   }
 }
 
+function snapCamera(editor: Editor) {
+  try {
+    const { x, y, z } = editor.getCamera()
+    return { x, y, z }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * tldraw auto-zooms to external content placed off-viewport
+ * (`zoomToSelection` in its default handlers). Drops must never move the
+ * camera, so we snapshot and restore it around every ingest.
+ */
+function restoreCamera(editor: Editor, snap: { x: number; y: number; z: number } | null) {
+  if (!snap) return
+  try {
+    const now = editor.getCamera()
+    if (now.x !== snap.x || now.y !== snap.y || now.z !== snap.z) {
+      editor.setCamera(snap)
+    }
+  } catch {
+    // Camera already gone (board cleared mid-drop) — nothing to restore.
+  }
+}
+
 /**
  * Dump files onto the canvas, auto-tiled from `origin` (or viewport center).
  * One `putExternalContent` call per file keeps tldraw's asset pipeline
@@ -27,6 +53,7 @@ export async function ingestFiles(
   if (list.length === 0) return 0
   const base = origin ?? viewportOrigin(editor)
   const points = cascadePoints(list.length, base)
+  const camera = snapCamera(editor)
 
   let placed = 0
   for (let i = 0; i < list.length; i++) {
@@ -41,6 +68,7 @@ export async function ingestFiles(
       // Skip unreadable files; keep the rest of the dump going.
     }
   }
+  restoreCamera(editor, camera)
   return placed
 }
 
@@ -53,6 +81,7 @@ export async function ingestText(
   const text = raw.trim()
   if (!text) return
   const base = origin ?? viewportOrigin(editor)
+  const camera = snapCamera(editor)
 
   if (IMAGE_URL_RE.test(text)) {
     try {
@@ -71,6 +100,7 @@ export async function ingestText(
   } else {
     await editor.putExternalContent({ type: 'text', text, point: base })
   }
+  restoreCamera(editor, camera)
 }
 
 /** Clipboard / DataTransfer helpers — the "dump anything" entry points. */

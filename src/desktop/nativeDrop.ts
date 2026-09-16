@@ -1,4 +1,5 @@
 import { readFile } from '@tauri-apps/plugin-fs'
+import type { PhysicalPosition } from '@tauri-apps/api/dpi'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 
 const MIME_BY_EXT: Record<string, string> = {
@@ -21,7 +22,7 @@ const MIME_BY_EXT: Record<string, string> = {
  * Directories and out-of-scope paths are skipped; the caller reports counts.
  */
 export async function onNativeFileDrop(
-  cb: (files: File[], total: number) => void,
+  cb: (files: File[], total: number, position: PhysicalPosition) => void,
 ): Promise<() => void> {
   return getCurrentWebview().onDragDropEvent(async (event) => {
     if (event.payload.type !== 'drop') return
@@ -41,6 +42,6 @@ export async function onNativeFileDrop(
         // Unreadable (directory, permissions, out of fs scope) — skipped.
       }
     }
-    cb(out, paths.length)
+    cb(out, paths.length, event.payload.position)
   })
 }

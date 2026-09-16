@@ -28,7 +28,11 @@ export function attachPersistence(editor: Editor): () => void {
 
   const unlisten = editor.store.listen(
     () => {
-      useBoardUi.getState().setShapeCount(editor.getCurrentPageShapeIds().size)
+      // Shape count drives toolbar badges — but geometry churns (drags fire
+      // per pointer-move) must not re-render React. Only publish on add/remove.
+      const n = editor.getCurrentPageShapeIds().size
+      const ui = useBoardUi.getState()
+      if (ui.shapeCount !== n) ui.setShapeCount(n)
       if (timer) clearTimeout(timer)
       timer = setTimeout(save, DEBOUNCE_MS)
     },

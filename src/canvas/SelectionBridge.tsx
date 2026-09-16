@@ -10,9 +10,13 @@ export default function SelectionBridge() {
   const editor = useEditor()
   useEffect(() => {
     const sync = () => {
-      useBoardUi
-        .getState()
-        .setSelectedIds([...editor.getSelectedShapeIds()] as string[])
+      // Identity-compare: document churn must not bump the revision and
+      // re-render the organize bar / tag panel mid-drag.
+      const ids = [...editor.getSelectedShapeIds()] as string[]
+      const prev = useBoardUi.getState().selectedIds
+      if (ids.length !== prev.length || ids.some((id, i) => id !== prev[i])) {
+        useBoardUi.getState().setSelectedIds(ids)
+      }
     }
     sync()
     return editor.store.listen(sync, { scope: 'document' })

@@ -11,6 +11,39 @@ import { attachPersistence, restoreSnapshot } from './persistence'
 import SelectionBridge from './SelectionBridge'
 import { isTauri } from '../desktop/tauri'
 import { onNativeFileDrop } from '../desktop/nativeDrop'
+import type { PhysicalPosition } from '@tauri-apps/api/dpi'
+import { getCurrentWindow } from '@tauri-apps/api/window'
+import type { PagePoint } from '../core/types'
+
+/**
+ * Convert a native OS drop position (physical screen pixels) into a canvas
+ * page point via window client area → CSS px → tldraw screen space.
+ * Falls back to the viewport center when the result looks wrong — a wild
+ * point triggers tldraw's zoom-to-content, which is exactly what we avoid.
+ */
+async function nativeDropPoint(editor: Editor, pos: PhysicalPosition): Promise<PagePoint> {
+  const fallback = (): PagePoint => {
+    const c = editor.getViewportScreenCenter()
+    return editor.screenToPage(c)
+  }
+  try {
+    const win = getCurrentWindow()
+    const [scale, inner] = await Promise.all([win.scaleFactor(), win.innerPosition()])
+    const p = pos.toLogical(scale)
+    const o = inner.toLogical(scale)
+    const pt = editor.screenToPage({ x: p.x - o.x, y: p.y - o.y })
+    const vb = editor.getViewportPageBounds()
+    const margin = Math.max(vb.width, vb.height)
+    const sane =
+      pt.x >= vb.x - margin &&
+      pt.x <= vb.x + vb.width + margin &&
+      pt.y >= vb.y - margin &&
+      pt.y <= vb.y + vb.height + margin
+    return sane ? { x: pt.x, y: pt.y } : fallback()
+  } catch {
+    return fallback()
+  }
+}
 
 /**
  * Infinite canvas. tldraw owns rendering, camera, and all native
@@ -84,20 +117,22 @@ export default function BoardCanvas() {
     let nativeUnlisten: (() => void) | null = null
     let cancelled = false
     if (isTauri()) {
-      void onNativeFileDrop((files, total) => {
+      void onNativeFileDrop((files, total, position) => {
         const editor = editorRef.current
         if (!editor) return
-        const origin = editor.screenToPage(editor.getViewportScreenCenter())
-        setHint(`Adding ${total} file${total === 1 ? '' : 's'}…`)
-        void ingestFiles(editor, files, origin).then((n) =>
-          setHint(
-            n === total
-              ? `${n} item${n === 1 ? '' : 's'} added`
-              : n > 0
-                ? `${n} added, ${total - n} skipped`
-                : 'Nothing readable dropped',
-          ),
-        )
+        void nativeDropPoint(editor, position).then((origin) => {
+          if (!editorRef.current) return
+          setHint(`Adding ${total} file${total === 1 ? '' : 's'}…`)
+          void ingestFiles(editor, files, origin).then((n) =>
+            setHint(
+              n === total
+                ? `${n} item${n === 1 ? '' : 's'} added`
+                : n > 0
+                  ? `${n} added, ${total - n} skipped`
+                  : 'Nothing readable dropped',
+            ),
+          )
+        })
       }).then((unlisten) => {
         if (cancelled) unlisten()
         else nativeUnlisten = unlisten

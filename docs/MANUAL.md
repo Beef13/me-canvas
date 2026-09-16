@@ -42,7 +42,7 @@ npm run desktop:build  # installer bundle
 ```
 - Same board, native window (1440×900 default). Web build is untouched.
 - **📌 Pin** button (desktop only) toggles always-on-top for reference-over-work use.
-- **Finder drops work**: drag files from Finder straight onto the canvas (native path, auto-tiled).
+- **Finder drops work**: drag files from Finder straight onto the canvas (native path, auto-tiled). Drops land where you release them and never move the camera.
 - Data stays in the same local-first IndexedDB snapshot store.
 
 ## Known limits
